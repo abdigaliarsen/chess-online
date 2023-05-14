@@ -80,7 +80,14 @@ export function ChessBoard(props: ChessBoardProps) {
 
     return (
         <>
-            <div style={{ width: "461px", position: "sticky" }} >
+            <div style={{
+                    width: "461px",
+                    position: "sticky",
+                    top: "50%",
+                    left: "50%",
+                    transform: "translate(-50%,-50%)"
+                }}
+            >
                 {board.map((square, index) =>
                     <div key={index}>{square}</div>
                 )}
