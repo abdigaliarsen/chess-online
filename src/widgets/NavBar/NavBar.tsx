@@ -10,9 +10,10 @@ export function NavBar() {
   if (session.status === "authenticated") {
     navigations = [
       ['Home', '/'],
-      ['FAQ', '/faq'],
-      ['Profile', '/profile'],
+      ['Profile', `/profile/${session.data.user.id}`],
+      ['Play', '/play'],
       ['Friends', '/friends'],
+      ['FAQ', '/faq'],
     ];
     authBtn = <button
       onClick={() => signOut()}
@@ -34,9 +35,10 @@ export function NavBar() {
 
   return (
     <nav className="flex sm:justify-center space-x-4">
-      {navigations.map(([title, url]) => {
+      {navigations.map(([title, url], index) => {
         if (!url) return <></>
         return <Link
+          key={index}
           href={url}
           className="px-3 py-2 text-white font-extrabold font-mono hover:text-slate-900">
           {title}
