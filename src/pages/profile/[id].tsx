@@ -3,7 +3,7 @@ import { type NextPage } from "next";
 import { useSession } from "next-auth/react";
 import Image from "next/image";
 import { useRouter } from "next/router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { api } from "~/utils/api";
 
 const ProfileWrapper: NextPage = () => {
@@ -22,21 +22,23 @@ const Profile: NextPage = () => {
   const { id } = router.query;
 
   const [user, setUser] = useState<User>();
-  const [isThisUser, setIsThisUser] = useState<boolean>(false);
 
   const [country, setCountry] = useState<string | null>();
   const [city, setCity] = useState<string | null>();
   const [description, setDescription] = useState<string | null>();
+
+  useEffect(() => {
+    if (user) {
+      setCountry(user.country);
+      setCity(user.city);
+    }
+  }, [user]);
 
   api.user.getById.useQuery({ id: id as string }, {
     onError: (error) => {
     },
     onSuccess: (data: User) => {
       setUser(data);
-      setCountry(data.country);
-      setCity(data.city);
-      setDescription(data.description);
-      setIsThisUser(session.data !== null && session.data.user.id === data.id)
     }
   });
 
@@ -67,7 +69,8 @@ const Profile: NextPage = () => {
           return { ...prev, ...data };
         return prev;
       });
-    }});
+    }
+  });
 
   const saveCityOrCountry = () => {
     if (city !== user?.city) {
@@ -80,15 +83,15 @@ const Profile: NextPage = () => {
   }
 
   let saveCityOrCountryBtn = <></>;
-  if (country !== user?.country || city !== user?.city)
+  if (country && country !== user?.country || city && city !== user?.city)
     saveCityOrCountryBtn = <button
       onClick={saveCityOrCountry}
       className="text-white py-2 px-4 uppercase rounded bg-blue-400 hover:bg-blue-500 shadow hover:shadow-lg font-medium transition transform hover:-translate-y-0.5 mt-8"
     >Save changes
     </button>;
-  
+
   let saveDescriptionBtn = <></>;
-  if (description !== user?.description)
+  if (description && description !== user?.description)
     saveDescriptionBtn = <button
       onClick={() => updateDescription({ id: user?.id as string, description: description as string })}
       className="text-white py-2 px-4 uppercase rounded bg-blue-400 hover:bg-blue-500 shadow hover:shadow-lg font-medium transition transform hover:-translate-y-0.5 mt-8"
@@ -123,7 +126,7 @@ const Profile: NextPage = () => {
               </div>}
           </div>
 
-          {<div className="space-x-8 flex justify-between mt-32 md:mt-0 md:justify-center">
+          {session.data?.user.id !== user?.id && <div className="space-x-8 flex justify-between mt-32 md:mt-0 md:justify-center">
             <button
               className="text-white py-2 px-4 uppercase rounded bg-blue-400 hover:bg-blue-500 shadow hover:shadow-lg font-medium transition transform hover:-translate-y-0.5"
             >
@@ -134,7 +137,7 @@ const Profile: NextPage = () => {
             >
               Message
             </button>
-          </div> /*&& isThisUser*/}
+          </div>}
         </div>
 
         <div className="mt-20 text-center border-b pb-12">
