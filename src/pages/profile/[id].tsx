@@ -1,4 +1,4 @@
-import { User } from "@prisma/client";
+import { Follows, User } from "@prisma/client";
 import { type NextPage } from "next";
 import { useSession } from "next-auth/react";
 import Image from "next/image";
@@ -21,7 +21,10 @@ const Profile: NextPage = () => {
   const router = useRouter();
   const { id } = router.query;
 
-  const [user, setUser] = useState<User>();
+  const [user, setUser] = useState<User & {
+    followedBy: Follows[];
+    following: Follows[];
+  }>();
 
   const [country, setCountry] = useState<string | null>();
   const [city, setCity] = useState<string | null>();
@@ -40,60 +43,35 @@ const Profile: NextPage = () => {
       console.error(error);
     },
     onSuccess: (data: User) => {
+      console.log(data);
       setUser(data);
     }
   });
 
-  const { mutate: updateCountry } = api.user.updateCountry.useMutation({
+  const { mutate: updateUser } = api.user.updateUserProfile.useMutation({
     onMutate: (data) => {
-      setUser(prev => {
-        if (prev)
+      setUser((prev) => {
+        if (prev) {
           return { ...prev, ...data };
+        }
         return prev;
-      });
+      })
     }
   });
 
-  const { mutate: updateCity } = api.user.updateCity.useMutation({
-    onMutate: (data) => {
-      setUser(prev => {
-        if (prev)
-          return { ...prev, ...data };
-        return prev;
-      });
-    }
-  });
-
-  const { mutate: updateDescription } = api.user.updateDescription.useMutation({
-    onMutate: (data) => {
-      setUser(prev => {
-        if (prev)
-          return { ...prev, ...data };
-        return prev;
-      });
-    }
-  });
-
-  const { data: friendsCount } = api.user.getFriendsCount.useQuery({ id: id as string }, {
-    onError: (error) => {
-      console.error(error);
-    },
-  });
-
-  const saveCityOrCountry = () => {
-    if (city !== user?.city) {
-      updateCity({ id: user?.id as string, city: city as string });
-    }
-
-    if (country !== user?.country) {
-      updateCountry({ id: user?.id as string, country: country as string });
-    }
+  const saveUpdates = () => {
+    updateUser({
+      id: user?.id as string,
+      city: city as string,
+      country: country as string,
+      description: description as string
+    });
   }
 
   let saveCityOrCountryBtn = <></>;
   if (country && country !== user?.country || city && city !== user?.city)
     saveCityOrCountryBtn = <button
-      onClick={saveCityOrCountry}
+      onClick={saveUpdates}
       className="text-white py-2 px-4 uppercase rounded bg-blue-400 hover:bg-blue-500 shadow hover:shadow-lg font-medium transition transform hover:-translate-y-0.5 mt-8"
     >Save changes
     </button>;
@@ -101,7 +79,7 @@ const Profile: NextPage = () => {
   let saveDescriptionBtn = <></>;
   if (description && description !== user?.description)
     saveDescriptionBtn = <button
-      onClick={() => updateDescription({ id: user?.id as string, description: description as string })}
+      onClick={saveUpdates}
       className="text-white py-2 px-4 uppercase rounded bg-blue-400 hover:bg-blue-500 shadow hover:shadow-lg font-medium transition transform hover:-translate-y-0.5 mt-8"
     >Save changes
     </button>;
@@ -110,14 +88,18 @@ const Profile: NextPage = () => {
     <div className="p-16">
       <div className="p-8 bg-white shadow mt-24">
         <div className="grid grid-cols-1 md:grid-cols-3">
-          <div className="grid grid-cols-2 text-center order-last md:order-first mt-20 md:mt-0">
+          <div className="grid grid-cols-3 text-center order-last md:order-first mt-20 md:mt-0">
             <div>
               <p className="font-bold text-gray-700 text-xl">10</p>
               <p className="text-gray-400">Games</p>
             </div>
             <div>
-              <p className="font-bold text-gray-700 text-xl">{friendsCount}</p>
-              <p className="text-gray-400">Friends</p>
+              <p className="font-bold text-gray-700 text-xl">{user?.followedBy.length}</p>
+              <p className="text-gray-400">Followers</p>
+            </div>
+            <div>
+              <p className="font-bold text-gray-700 text-xl">{user?.following.length}</p>
+              <p className="text-gray-400">Following</p>
             </div>
           </div>
           <div className="relative">
