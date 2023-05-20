@@ -31,11 +31,13 @@ const Profile: NextPage = () => {
     if (user) {
       setCountry(user.country);
       setCity(user.city);
+      setDescription(user.description);
     }
   }, [user]);
 
   api.user.getById.useQuery({ id: id as string }, {
     onError: (error) => {
+      console.error(error);
     },
     onSuccess: (data: User) => {
       setUser(data);
@@ -70,6 +72,12 @@ const Profile: NextPage = () => {
         return prev;
       });
     }
+  });
+
+  const { data: friendsCount } = api.user.getFriendsCount.useQuery({ id: id as string }, {
+    onError: (error) => {
+      console.error(error);
+    },
   });
 
   const saveCityOrCountry = () => {
@@ -108,7 +116,7 @@ const Profile: NextPage = () => {
               <p className="text-gray-400">Games</p>
             </div>
             <div>
-              <p className="font-bold text-gray-700 text-xl">22</p>
+              <p className="font-bold text-gray-700 text-xl">{friendsCount}</p>
               <p className="text-gray-400">Friends</p>
             </div>
           </div>
