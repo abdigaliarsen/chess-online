@@ -2,21 +2,14 @@
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 generator client {
-    provider = "prisma-client-js"
+    provider        = "prisma-client-js"
     previewFeatures = ["jsonProtocol"]
 }
 
 datasource db {
-    provider = "mysql"
-    url      = env("DATABASE_URL")
-
+    provider     = "mysql"
+    url          = env("DATABASE_URL")
     relationMode = "prisma"
-}
-
-model Example {
-    id        String   @id @default(cuid())
-    createdAt DateTime @default(now())
-    updatedAt DateTime @updatedAt
 }
 
 // Necessary for Next auth
@@ -60,6 +53,20 @@ model User {
     image         String?
     accounts      Account[]
     sessions      Session[]
+
+    followedBy Follows[] @relation("following")
+    following  Follows[] @relation("follower")
+
+    @@index([email])
+}
+
+model Follows {
+    followerId  String
+    follower    User   @relation("follower", fields: [followerId], references: [id])
+    followingId String
+    following   User   @relation("following", fields: [followingId], references: [id])
+
+    @@id([followerId, followingId])
 }
 
 model VerificationToken {
