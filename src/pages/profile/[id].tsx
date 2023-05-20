@@ -24,7 +24,7 @@ const Profile: NextPage = () => {
   const [user, setUser] = useState<User & {
     followedBy: Follows[];
     following: Follows[];
-  }>();
+  } | null>();
 
   const [country, setCountry] = useState<string | null>();
   const [city, setCity] = useState<string | null>();
@@ -42,7 +42,7 @@ const Profile: NextPage = () => {
     onError: (error) => {
       console.error(error);
     },
-    onSuccess: (data: User) => {
+    onSuccess: (data) => {
       console.log(data);
       setUser(data);
     }
