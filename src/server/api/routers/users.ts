@@ -5,7 +5,14 @@ export const usersRouter = createTRPCRouter({
     getById: publicProcedure
         .input(z.object({ id: z.string() }))
         .query(async ({ ctx, input }) => {
-            const user = await ctx.prisma.user.findUnique({ where: { id: input.id } });
+            const user = await ctx.prisma.user
+                .findUnique({
+                    where: { id: input.id },
+                    include: {
+                        followedBy: true,
+                        following: true
+                    }
+                });
             return user;
         }),
     getFriendsById: publicProcedure
@@ -50,31 +57,23 @@ export const usersRouter = createTRPCRouter({
 
             return friends.length;
         }),
-    updateCity: publicProcedure
-        .input(z.object({ id: z.string(), city: z.string() }))
+    updateUserProfile: publicProcedure
+        .input(z.object({
+            id: z.string(),
+            city: z.string(),
+            country: z.string(),
+            description: z.string()
+        }))
         .mutation(async ({ ctx, input }) => {
             const user = await ctx.prisma.user.update({
                 where: { id: input.id },
-                data: { city: input.city },
+                data: {
+                    city: input.city,
+                    country: input.country,
+                    description: input.description
+                }
             });
-            return user;
-        }),
-    updateCountry: publicProcedure
-        .input(z.object({ id: z.string(), country: z.string() }))
-        .mutation(async ({ ctx, input }) => {
-            const user = await ctx.prisma.user.update({
-                where: { id: input.id },
-                data: { country: input.country },
-            });
-            return user;
-        }),
-    updateDescription: publicProcedure
-        .input(z.object({ id: z.string(), description: z.string() }))
-        .mutation(async ({ ctx, input }) => {
-            const user = await ctx.prisma.user.update({
-                where: { id: input.id },
-                data: { description: input.description },
-            });
+
             return user;
         }),
 });
