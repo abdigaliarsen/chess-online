@@ -6,15 +6,6 @@ import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import { api } from "~/utils/api";
 
-const ProfileWrapper: NextPage = () => {
-  const session = useSession();
-
-  if (session.status !== "authenticated")
-    return <></>;
-
-  return <Profile />;
-}
-
 const Profile: NextPage = () => {
   const session = useSession();
 
@@ -116,7 +107,7 @@ const Profile: NextPage = () => {
               </div>}
           </div>
 
-          {session.data?.user.id !== user?.id && <div className="space-x-8 flex justify-between mt-32 md:mt-0 md:justify-center">
+          {session.status === "authenticated" && session.data?.user.id !== user?.id && <div className="space-x-8 flex justify-between mt-32 md:mt-0 md:justify-center">
             <button
               className="text-white py-2 px-4 uppercase rounded bg-blue-400 hover:bg-blue-500 shadow hover:shadow-lg font-medium transition transform hover:-translate-y-0.5"
             >
@@ -167,4 +158,4 @@ const Profile: NextPage = () => {
   )
 }
 
-export default ProfileWrapper;
+export default Profile;
