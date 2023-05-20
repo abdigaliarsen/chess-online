@@ -2,7 +2,9 @@ import { type NextPage } from "next";
 
 import Image from "next/image";
 
-import image from "~/assets/epic-chess-bg.jpg";
+import image1 from "~/assets/epic-chess-bg-1.jpg";
+import image2 from "~/assets/epic-chess-bg-2.jpeg";
+import image3 from "~/assets/epic-chess-bg-3.jpg";
 
 const FAQ: NextPage = () => {
   return (
@@ -76,11 +78,25 @@ const FAQ: NextPage = () => {
 
             <div>
               <Image
-                src={image}
+                src={image1}
                 className="w-full rounded-lg shadow-lg"
                 alt="epic chess background"
-                width={image.width}
-                height={image.height}
+                width={image1.width}
+                height={image1.height}
+              />
+              <Image
+                src={image2}
+                className="w-full rounded-lg shadow-lg mt-40 mb-40"
+                alt="epic chess background"
+                width={image2.width}
+                height={image2.height}
+              />
+              <Image
+                src={image3}
+                className="w-full rounded-lg shadow-lg"
+                alt="epic chess background"
+                width={image3.width}
+                height={image3.height}
               />
             </div>
           </div>
