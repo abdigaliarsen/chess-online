@@ -34,7 +34,6 @@ const Profile: NextPage = () => {
       console.error(error);
     },
     onSuccess: (data) => {
-      console.log(data);
       setUser(data);
     }
   });
