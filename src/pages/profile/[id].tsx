@@ -183,23 +183,29 @@ const Profile: NextPage = () => {
               type="text"
               placeholder="your city"
               value={city ? city : ""}
-              onChange={(e) => setCity(e.target.value)} />
+              onChange={(e) => setCity(e.target.value)}
+              disabled={user?.id !== session.data?.user.id}
+            />
             , <input
               className="text-gray-600 font-light italic outline-none"
               type="text"
               placeholder="your country"
               value={country ? country : ""}
-              onChange={(e) => setCountry(e.target.value)} />
+              onChange={(e) => setCountry(e.target.value)}
+              disabled={user?.id !== session.data?.user.id}
+            />
           </p>
 
           {saveCityOrCountryBtn}
 
           <p className="mt-8 text-gray-500">
-            <input className="text-gray-600 font-light italic text-center outline-none"
+            <input className="text-gray-600 disabled:bg-transparent font-light italic text-center outline-none"
               type="text"
               placeholder="your description"
               value={description ? description : ""}
-              onChange={(e) => setDescription(e.target.value)} />
+              onChange={(e) => setDescription(e.target.value)}
+              disabled={user?.id !== session.data?.user.id}
+            />
           </p>
           {saveDescriptionBtn}
         </div>
