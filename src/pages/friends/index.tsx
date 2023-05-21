@@ -1,11 +1,10 @@
 import { useSession } from "next-auth/react";
-import Image from "next/image";
-import Link from "next/link";
 import { api } from "~/utils/api";
-import { faGamepad, faMessage, faUserXmark, faUserPlus, faMagnifyingGlass } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useState } from "react";
 import { User } from "@prisma/client";
+import { UsersList } from "~/widgets/UsersList/UsersList";
+import { faMagnifyingGlass } from "@fortawesome/free-solid-svg-icons";
 
 const FriendsWrapper = () => {
   const session = useSession();
@@ -76,13 +75,15 @@ const Friends = () => {
         <input
           type="text"
           placeholder="Search..."
-          className="pl-2 italic border border-gray-300 w-full bg-transparent rounded" />
+          className="pl-2 pr-10 py-2 border border-gray-500 w-full bg-transparent rounded-md focus:outline-none"
+          aria-label="Search"
+        />
         <FontAwesomeIcon
           tabIndex={-1}
           onClick={() => { }}
           onKeyDown={(e) => { console.log(e) }}
           onChange={() => { }}
-          className="cursor-pointer absolute right-2 top-1"
+          className="cursor-pointer absolute right-2 top-3"
           icon={faMagnifyingGlass} />
       </div>
       <div>
@@ -92,55 +93,7 @@ const Friends = () => {
             {friends?.length}
           </span>
         </div>
-        {friends?.map((friend, index) =>
-          <div key={index} className="flex mt-10 justify-between">
-            <div className="flex">
-              <div className="">
-                <Image
-                  src={friend.image ? friend.image : "/default-profile.png"}
-                  width={50}
-                  height={50}
-                  alt="profile picture"
-                  priority={true}
-                />
-              </div>
-              <div className="flex-col items-center ml-6">
-                <Link href={`/profile/${friend.id}`} className="hover:text-black font-bold">
-                  {friend.name}
-                </Link>
-                <p className="text-gray-500">{ }</p>
-              </div>
-            </div>
-            <ul className="flex">
-              <li className="ml-4 hover:text-black">
-                <Link
-                  href={{
-                    pathname: "play",
-                    query: { oponent: friend.id }
-                  }}
-                  title="Play">
-                  <FontAwesomeIcon icon={faGamepad} />
-                </Link>
-              </li>
-              <li className="ml-4 hover:text-black">
-                <button title="Message">
-                  <FontAwesomeIcon icon={faMessage} />
-                </button>
-              </li>
-              <li className="ml-4 hover:text-black">
-                <button
-                  title="Delete friend"
-                  onClick={() => {
-                    unfollow({
-                      followerId: session.data.user.id, followingId: friend.id
-                    })
-                  }}>
-                  <FontAwesomeIcon icon={faUserXmark} />
-                </button>
-              </li>
-            </ul>
-          </div>
-        )}
+        <UsersList id={session.data.user.id} users={friends} unfollow={unfollow} />
       </div>
       <div>
         <div className="flex items-end">
@@ -149,53 +102,7 @@ const Friends = () => {
             {recommendations?.length}
           </span>
         </div>
-        {recommendations?.map((recommendation, index) =>
-          <div key={index} className="flex mt-10 justify-between">
-            <div className="flex">
-              <div className="">
-                <Image
-                  src={recommendation.image ? recommendation.image : "/default-profile.png"}
-                  width={50}
-                  height={50}
-                  alt="profile picture"
-                  priority={true}
-                />
-              </div>
-              <div className="flex-col items-center ml-6">
-                <Link href={`/profile/${recommendation.id}`} className="hover:text-black font-bold">
-                  {recommendation.name}
-                </Link>
-                <p className="text-gray-500">{ }</p>
-              </div>
-            </div>
-            <ul className="flex">
-              <li className="ml-4 hover:text-black">
-                <Link
-                  href={{
-                    pathname: "play",
-                    query: { oponent: recommendation.id }
-                  }}
-                  title="Play">
-                  <FontAwesomeIcon icon={faGamepad} />
-                </Link>
-              </li>
-              <li className="ml-4 hover:text-black">
-                <button title="Message">
-                  <FontAwesomeIcon icon={faMessage} />
-                </button>
-              </li>
-              <li className="ml-4 hover:text-black">
-                <button
-                  onClick={() => {
-                    follow({ followerId: session.data.user.id, followingId: recommendation.id })
-                  }}
-                  title="Follow">
-                  <FontAwesomeIcon icon={faUserPlus} />
-                </button>
-              </li>
-            </ul>
-          </div>
-        )}
+        <UsersList id={session.data.user.id} users={recommendations} follow={follow} />
       </div>
     </div>
   )
