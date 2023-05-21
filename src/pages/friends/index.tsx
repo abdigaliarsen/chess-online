@@ -28,18 +28,45 @@ const Friends = () => {
       console.error(error)
     },
     onSuccess: (data) => {
-      console.log(data);
       setFriends(data);
     }
   });
 
-  api.user.getRandomUsers.useQuery({ id: session.data.user.id, count: 10 }, {
+  api.user.getUnfollowedUsers.useQuery({ id: session.data.user.id, count: 10 }, {
     onError: (error) => {
       console.error(error)
     },
     onSuccess: (data) => {
       console.log(data);
       setRecommendations(data);
+    }
+  });
+
+  const { mutate: follow } = api.follow.setFollow.useMutation({
+    onMutate: (data) => {
+      setRecommendations((prev) => {
+        if (prev) {
+          return prev.filter((user) => user.id !== data.followingId);
+        }
+        return prev;
+      });
+    },
+    onError: (error) => {
+      console.error(error);
+    }
+  });
+
+  const { mutate: unfollow } = api.follow.setUnfollow.useMutation({
+    onMutate: (data) => {
+      setFriends((prev) => {
+        if (prev) {
+          return prev.filter((user) => user.id !== data.followingId);
+        }
+        return prev;
+      });
+    },
+    onError: (error) => {
+      console.error(error);
     }
   });
 
@@ -101,7 +128,13 @@ const Friends = () => {
                 </button>
               </li>
               <li className="ml-4 hover:text-black">
-                <button title="Delete friend">
+                <button
+                  title="Delete friend"
+                  onClick={() => {
+                    unfollow({
+                      followerId: session.data.user.id, followingId: friend.id
+                    })
+                  }}>
                   <FontAwesomeIcon icon={faUserXmark} />
                 </button>
               </li>
@@ -116,12 +149,12 @@ const Friends = () => {
             {recommendations?.length}
           </span>
         </div>
-        {recommendations?.map((friend, index) =>
+        {recommendations?.map((recommendation, index) =>
           <div key={index} className="flex mt-10 justify-between">
             <div className="flex">
               <div className="">
                 <Image
-                  src={friend.image ? friend.image : "/default-profile.png"}
+                  src={recommendation.image ? recommendation.image : "/default-profile.png"}
                   width={50}
                   height={50}
                   alt="profile picture"
@@ -129,8 +162,8 @@ const Friends = () => {
                 />
               </div>
               <div className="flex-col items-center ml-6">
-                <Link href={`/profile/${friend.id}`} className="hover:text-black font-bold">
-                  {friend.name}
+                <Link href={`/profile/${recommendation.id}`} className="hover:text-black font-bold">
+                  {recommendation.name}
                 </Link>
                 <p className="text-gray-500">{ }</p>
               </div>
@@ -140,7 +173,7 @@ const Friends = () => {
                 <Link
                   href={{
                     pathname: "play",
-                    query: { oponent: friend.id }
+                    query: { oponent: recommendation.id }
                   }}
                   title="Play">
                   <FontAwesomeIcon icon={faGamepad} />
@@ -152,7 +185,11 @@ const Friends = () => {
                 </button>
               </li>
               <li className="ml-4 hover:text-black">
-                <button title="Follow">
+                <button
+                  onClick={() => {
+                    follow({ followerId: session.data.user.id, followingId: recommendation.id })
+                  }}
+                  title="Follow">
                   <FontAwesomeIcon icon={faUserPlus} />
                 </button>
               </li>

@@ -24,44 +24,20 @@ export const usersRouter = createTRPCRouter({
             const followers = await ctx.prisma.follows.findMany({
                 where: { followingId: input.id }
             });
-
+            
+            const follows = followings.filter(f1 => followers.some(f2 => f2.followerId === f1.followingId));
             const friends = await ctx.prisma.user.findMany({
-                where: {
-                    OR: [
-                        { id: { in: followings.map(f => f.followerId) } },
-                        { id: { in: followers.map(f => f.followingId )} },
-                    ],
-                },
+                where: { id: { in: follows.map(f => f.followingId) } }
             });
-
             return friends;
         }),
-    getFriendsCount: publicProcedure
-        .input(z.object({ id: z.string() }))
-        .query(async ({ ctx, input }) => {
-            const followings = await ctx.prisma.follows.findMany({
-                where: { followerId: input.id }
-            });
-            const followers = await ctx.prisma.follows.findMany({
-                where: { followingId: input.id }
-            });
-
-            const friends = await ctx.prisma.user.findMany({
-                where: {
-                    OR: [
-                        { id: { in: followings.map(f => f.followerId) } },
-                        { id: { in: followers.map(f => f.followingId )} },
-                    ],
-                },
-            });
-
-            return friends.length;
-        }),
-    getRandomUsers: publicProcedure
+    getUnfollowedUsers: publicProcedure
         .input(z.object({ id: z.string(), count: z.number() }))
         .query(async ({ ctx, input }) => {
+            const followings = (await ctx.prisma.follows.findMany({ where: { followerId: input.id } }))
+                .map(f => f.followingId);
             const users = await ctx.prisma.user.findMany({
-                where: { id: { not: input.id } },
+                where: { id: { not: input.id, notIn: followings } },
                 take: input.count,
             });
             return users;
