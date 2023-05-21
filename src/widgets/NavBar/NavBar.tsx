@@ -5,7 +5,7 @@ export function NavBar() {
   const session = useSession();
 
   let navigations: Array<[string, string]> = [];
-  let authBtn: JSX.Element;
+  let authElement: JSX.Element;
 
   if (session.status === "authenticated") {
     navigations = [
@@ -15,7 +15,7 @@ export function NavBar() {
       ['Friends', '/friends'],
       ['FAQ', '/faq'],
     ];
-    authBtn = <button
+    authElement = <button
       onClick={() => signOut()}
       className="px-3 py-2 text-white font-extrabold font-mono hover:text-slate-900">
         Logout
@@ -26,11 +26,11 @@ export function NavBar() {
       ['Home', '/'],
       ['FAQ', '/faq'],
     ];
-    authBtn = <button
-      onClick={() => signIn()}
+    authElement = <Link
+      href="/auth/signin"
       className="px-3 py-2 text-white font-extrabold font-mono hover:text-slate-900">
         Log in
-      </button>
+      </Link>
   }
 
   return (
@@ -44,7 +44,7 @@ export function NavBar() {
           {title}
         </Link>
       })}
-      {authBtn}
+      {authElement}
     </nav>
   )
 }
