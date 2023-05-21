@@ -2,7 +2,7 @@ import { useSession } from "next-auth/react";
 import Image from "next/image";
 import Link from "next/link";
 import { api } from "~/utils/api";
-import { faGamepad, faMessage, faUserXmark, faMagnifyingGlass } from "@fortawesome/free-solid-svg-icons"
+import { faGamepad, faMessage, faUserXmark, faUserPlus, faMagnifyingGlass } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useState } from "react";
 import { User } from "@prisma/client";
@@ -152,8 +152,8 @@ const Friends = () => {
                 </button>
               </li>
               <li className="ml-4 hover:text-black">
-                <button title="Delete friend">
-                  <FontAwesomeIcon icon={faUserXmark} />
+                <button title="Follow">
+                  <FontAwesomeIcon icon={faUserPlus} />
                 </button>
               </li>
             </ul>
