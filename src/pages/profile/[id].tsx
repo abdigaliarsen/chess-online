@@ -2,9 +2,11 @@ import { Follows, User } from "@prisma/client";
 import { type NextPage } from "next";
 import { useSession } from "next-auth/react";
 import Image from "next/image";
+import Link from "next/link";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import { api } from "~/utils/api";
+import { ProfileImage } from "~/widgets/ProfileImage/ProfileImage";
 
 const Profile: NextPage = () => {
   const session = useSession();
@@ -138,40 +140,39 @@ const Profile: NextPage = () => {
               <p className="text-gray-400">Following</p>
             </div>
           </div>
+
           <div className="relative">
-            {user ? <Image
-              className="w-48 h-48 bg-indigo-100 mx-auto rounded-full shadow-2xl absolute inset-x-0 top-0 -mt-24 flex items-center justify-center text-indigo-500"
-              src={`${user.image}`}
-              alt='profile image'
+            <ProfileImage
+              user={user as User}
               width={192}
-              height={192} /> :
-              <div className="w-48 h-48 bg-indigo-100 mx-auto rounded-full shadow-2xl absolute inset-x-0 top-0 -mt-24 flex items-center justify-center text-indigo-500">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-24 w-24" viewBox="0 0 20 20" fill="currentColor">
-                  <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
-                </svg>
-              </div>}
+              height={192}
+              className="w-48 h-48 bg-indigo-100 mx-auto rounded-full shadow-2xl absolute inset-x-0 top-0 -mt-24 flex items-center justify-center text-indigo-500"
+              defaultImageClass="h-24 w-24"
+            />
           </div>
 
-          {session.status === "authenticated" && session.data?.user.id !== user?.id && <div className="space-x-8 flex justify-between mt-32 md:mt-0 md:justify-center">
-            {isFollowed ?
-              <button
-              onClick={() => unfollow({ followingId: user?.id as string, followerId: session.data.user.id })}
-              className="text-white py-2 px-4 uppercase rounded bg-red-400 hover:bg-red-500 shadow hover:shadow-lg font-medium transition transform hover:-translate-y-0.5"
-            >
-              Unfollow
-            </button> :
-              <button
-                onClick={() => follow({ followingId: user?.id as string, followerId: session.data.user.id })}
-                className="text-white py-2 px-4 uppercase rounded bg-blue-400 hover:bg-blue-500 shadow hover:shadow-lg font-medium transition transform hover:-translate-y-0.5"
+          {session.status === "authenticated" && session.data?.user.id !== user?.id &&
+            <div className="space-x-8 flex items-center justify-between mt-32 md:mt-0 md:justify-center">
+              {isFollowed ?
+                <button
+                  onClick={() => unfollow({ followingId: user?.id as string, followerId: session.data.user.id })}
+                  className="text-white py-2 px-4 uppercase rounded bg-red-400 hover:bg-red-500 shadow hover:shadow-lg font-medium transition transform hover:-translate-y-0.5"
+                >
+                  Unfollow
+                </button> :
+                <button
+                  onClick={() => follow({ followingId: user?.id as string, followerId: session.data.user.id })}
+                  className="text-white py-2 px-4 uppercase rounded bg-blue-400 hover:bg-blue-500 shadow hover:shadow-lg font-medium transition transform hover:-translate-y-0.5"
+                >
+                  Follow
+                </button>}
+              <Link
+                href={`/messages/${user?.id}`}
+                className="text-white py-2 px-4 uppercase rounded bg-gray-700 hover:bg-gray-800 shadow hover:shadow-lg font-medium transition transform hover:-translate-y-0.5"
               >
-                Follow
-              </button>}
-            <button
-              className="text-white py-2 px-4 uppercase rounded bg-gray-700 hover:bg-gray-800 shadow hover:shadow-lg font-medium transition transform hover:-translate-y-0.5"
-            >
-              Message
-            </button>
-          </div>}
+                Message
+              </Link>
+            </div>}
         </div>
 
         <div className="mt-20 text-center border-b pb-12">
