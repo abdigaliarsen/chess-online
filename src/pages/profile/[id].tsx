@@ -16,6 +16,7 @@ const Profile: NextPage = () => {
     followedBy: Follows[];
     following: Follows[];
   } | null>();
+  const [isFollowed, setIsFollowed] = useState<boolean>(false);
 
   const [country, setCountry] = useState<string | null>();
   const [city, setCity] = useState<string | null>();
@@ -28,6 +29,15 @@ const Profile: NextPage = () => {
       setDescription(user.description);
     }
   }, [user]);
+
+  api.follow.doesFollow.useQuery({ followingId: id as string, followerId: session.data?.user.id as string }, {
+    onError: (error) => {
+      console.error(error);
+    },
+    onSuccess: (data) => {
+      setIsFollowed(data);
+    }
+  });
 
   api.user.getById.useQuery({ id: id as string }, {
     onError: (error) => {
@@ -46,6 +56,42 @@ const Profile: NextPage = () => {
         }
         return prev;
       })
+    }
+  });
+
+  const { mutate: follow } = api.follow.setFollow.useMutation({
+    onMutate: (data) => {
+      setUser((prev) => {
+        if (prev) {
+          return {
+            ...prev,
+            followedBy: [...prev.followedBy, data]
+          };
+        }
+        return prev;
+      });
+      setIsFollowed(true);
+    },
+    onError: (error) => {
+      console.error(error);
+    }
+  });
+
+  const { mutate: unfollow } = api.follow.setUnfollow.useMutation({
+    onMutate: (data) => {
+      setUser((prev) => {
+        if (prev) {
+          return {
+            ...prev,
+            followedBy: prev.followedBy.filter((follow) => follow.followerId !== data.followerId)
+          };
+        }
+        return prev;
+      });
+      setIsFollowed(false);
+    },
+    onError: (error) => {
+      console.error(error);
     }
   });
 
@@ -107,11 +153,19 @@ const Profile: NextPage = () => {
           </div>
 
           {session.status === "authenticated" && session.data?.user.id !== user?.id && <div className="space-x-8 flex justify-between mt-32 md:mt-0 md:justify-center">
-            <button
-              className="text-white py-2 px-4 uppercase rounded bg-blue-400 hover:bg-blue-500 shadow hover:shadow-lg font-medium transition transform hover:-translate-y-0.5"
+            {isFollowed ?
+              <button
+              onClick={() => unfollow({ followingId: user?.id as string, followerId: session.data.user.id })}
+              className="text-white py-2 px-4 uppercase rounded bg-red-400 hover:bg-red-500 shadow hover:shadow-lg font-medium transition transform hover:-translate-y-0.5"
             >
-              Connect
-            </button>
+              Unfollow
+            </button> :
+              <button
+                onClick={() => follow({ followingId: user?.id as string, followerId: session.data.user.id })}
+                className="text-white py-2 px-4 uppercase rounded bg-blue-400 hover:bg-blue-500 shadow hover:shadow-lg font-medium transition transform hover:-translate-y-0.5"
+              >
+                Follow
+              </button>}
             <button
               className="text-white py-2 px-4 uppercase rounded bg-gray-700 hover:bg-gray-800 shadow hover:shadow-lg font-medium transition transform hover:-translate-y-0.5"
             >

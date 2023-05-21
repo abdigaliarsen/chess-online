@@ -14,8 +14,7 @@ export const followsRouter = createTRPCRouter({
             });
 
             return follow;
-        }
-        ),
+        }),
     setUnfollow: publicProcedure
         .input(z.object({ followerId: z.string(), followingId: z.string() }))
         .mutation(async ({ ctx, input }) => {
@@ -29,6 +28,19 @@ export const followsRouter = createTRPCRouter({
             });
 
             return follow;
-        }
-        ),
+        }),
+    doesFollow: publicProcedure
+        .input(z.object({ followerId: z.string(), followingId: z.string() }))
+        .query(async ({ ctx, input }) => {
+            const follow = await ctx.prisma.follows.findUnique({
+                where: {
+                    followerId_followingId: {
+                        followerId: input.followerId,
+                        followingId: input.followingId
+                    }
+                }
+            });
+
+            return follow !== null;
+        }),
 });
