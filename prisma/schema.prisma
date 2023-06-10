@@ -59,6 +59,9 @@ model User {
     followedBy Follows[] @relation("following")
     following  Follows[] @relation("follower")
 
+    messagesSent      Messages[] @relation("sender")
+    messagesReceived  Messages[] @relation("receiver")
+
     @@index([email])
 }
 
@@ -69,6 +72,22 @@ model Follows {
     following   User   @relation("following", fields: [followingId], references: [id])
 
     @@id([followerId, followingId])
+    @@index([followerId])
+    @@index([followingId])
+}
+
+model Messages {
+    senderId  String
+    receiverId String
+    content   String
+    createdAt DateTime @default(now())
+
+    sender    User     @relation("sender", fields: [senderId], references: [id])
+    receiver  User     @relation("receiver", fields: [receiverId], references: [id])
+
+    @@id([senderId, receiverId, createdAt])
+    @@index([senderId])
+    @@index([receiverId])
 }
 
 model VerificationToken {
