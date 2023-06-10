@@ -1,6 +1,5 @@
 import { z } from "zod";
 import { publicProcedure, createTRPCRouter } from "../trpc";
-import { getServerSession } from "next-auth";
 
 export const followsRouter = createTRPCRouter({
     setFollow: publicProcedure
