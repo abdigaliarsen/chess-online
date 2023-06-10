@@ -8,11 +8,14 @@ import { UseMutateFunction } from "@tanstack/react-query";
 interface UsersListProps {
   id: string,
   users: User[];
+  type: "friends" | "recommendations";
   unfollow?: UseMutateFunction<Follows, unknown, any, unknown>;
   follow?: UseMutateFunction<Follows, unknown, any, unknown>;
+  setActiveChatUser: React.Dispatch<React.SetStateAction<User | null>>;
+  setHideChat?: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
-export function UsersList({ id, users, unfollow, follow }: UsersListProps) {
+export function UsersList({ id, users, type, unfollow, follow, setActiveChatUser, setHideChat }: UsersListProps) {
   return (
     <>
       <div className="flex flex-col">
@@ -49,13 +52,20 @@ export function UsersList({ id, users, unfollow, follow }: UsersListProps) {
                 </Link>
               </li>
               <li className="ml-4 hover:text-black">
-                <Link
-                  href={`/messages/${user.id}`}
+                <button
+                  onClick={() => { setActiveChatUser((prev) => {
+                    if (prev?.id === user.id) {
+                      setHideChat?.(true);
+                      return null;
+                    }
+                    setHideChat?.(false);
+                    return user;
+                  }); }}
                   title="Message">
                   <FontAwesomeIcon icon={faMessage} />
-                </Link>
+                </button>
               </li>
-              {unfollow && <li className="ml-4 hover:text-black">
+              {type === "friends" && unfollow && <li className="ml-4 hover:text-black">
                 <button
                   title="Delete friend"
                   onClick={() => {
@@ -66,7 +76,7 @@ export function UsersList({ id, users, unfollow, follow }: UsersListProps) {
                   <FontAwesomeIcon icon={faUserXmark} />
                 </button>
               </li>}
-              {follow && <li className="ml-4 hover:text-black">
+              {type === "recommendations" && follow && <li className="ml-4 hover:text-black">
                 <button
                   onClick={() => {
                     follow({ followerId: id, followingId: user.id })
