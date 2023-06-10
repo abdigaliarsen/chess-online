@@ -1,28 +1,45 @@
-import { Follows, User } from "@prisma/client";
+import { Follows, Messages, User } from "@prisma/client";
 import { type NextPage } from "next";
 import { useSession } from "next-auth/react";
-import Image from "next/image";
-import Link from "next/link";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
+import { createMessagesConnection } from "~/features/Messages/createConnection";
+import { pusherClient } from "~/features/pusher";
 import { api } from "~/utils/api";
+import { ChatBox } from "~/widgets/Chat/ChatBox";
 import { ProfileImage } from "~/widgets/ProfileImage/ProfileImage";
 
-const Profile: NextPage = () => {
-  const session = useSession();
+interface ProfileProps {
+  profileId: string;
+}
 
+const ProfileWrapper = () => {
   const router = useRouter();
   const { id } = router.query;
+
+  if (id === undefined)
+    return <></>;
+
+  return <Profile profileId={id as string} />;
+}
+
+const Profile: NextPage<ProfileProps> = ({ profileId }: ProfileProps) => {
+  const session = useSession();
 
   const [user, setUser] = useState<User & {
     followedBy: Follows[];
     following: Follows[];
   } | null>();
+
+  const [messages, setMessages] = useState<Messages[]>([]);
+
   const [isFollowed, setIsFollowed] = useState<boolean>(false);
 
   const [country, setCountry] = useState<string | null>();
   const [city, setCity] = useState<string | null>();
   const [description, setDescription] = useState<string | null>();
+
+  const [hideChat, setHideChat] = useState<boolean>(true);
 
   useEffect(() => {
     if (user) {
@@ -32,7 +49,25 @@ const Profile: NextPage = () => {
     }
   }, [user]);
 
-  api.follow.doesFollow.useQuery({ followingId: id as string, followerId: session.data?.user.id as string }, {
+  useEffect(() => {
+    if (session.data) {
+      return createMessagesConnection({
+        senderId: session.data.user.id as string,
+        setMessages: setMessages,
+      })
+    }
+  }, [session.data?.user.id]);
+
+  api.message.getMessages.useQuery({ senderId: session.data?.user.id as string, receiverId: user?.id as string }, {
+    onError: (error) => {
+      console.error(error);
+    },
+    onSuccess: (data) => {
+      setMessages(data);
+    }
+  });
+
+  api.follow.doesFollow.useQuery({ followingId: profileId, followerId: session.data?.user.id as string }, {
     onError: (error) => {
       console.error(error);
     },
@@ -41,7 +76,7 @@ const Profile: NextPage = () => {
     }
   });
 
-  api.user.getById.useQuery({ id: id as string }, {
+  api.user.getById.useQuery({ id: profileId }, {
     onError: (error) => {
       console.error(error);
     },
@@ -99,10 +134,10 @@ const Profile: NextPage = () => {
 
   const saveUpdates = () => {
     updateUser({
-      id: user?.id as string,
-      city: city as string,
-      country: country as string,
-      description: description as string
+      id: profileId,
+      city: city ? city : "",
+      country: country ? country : "",
+      description: description ? description : ""
     });
   }
 
@@ -123,7 +158,14 @@ const Profile: NextPage = () => {
     </button>;
 
   return (
-    <div className="p-16">
+    <div
+      className="p-16"
+      onKeyDown={(e) => {
+        if (e.key === "Escape" || e.key === "Esc") {
+          setHideChat(true);
+        }
+      }}
+    >
       <div className="p-8 bg-white shadow mt-24">
         <div className="grid grid-cols-1 md:grid-cols-3">
           <div className="grid grid-cols-3 text-center order-last md:order-first mt-20 md:mt-0">
@@ -151,27 +193,27 @@ const Profile: NextPage = () => {
             />
           </div>
 
-          {session.status === "authenticated" && session.data?.user.id !== user?.id &&
+          {session.status === "authenticated" && user && session.data.user.id !== profileId &&
             <div className="space-x-8 flex items-center justify-between mt-32 md:mt-0 md:justify-center">
               {isFollowed ?
                 <button
-                  onClick={() => unfollow({ followingId: user?.id as string, followerId: session.data.user.id })}
+                  onClick={() => unfollow({ followingId: profileId as string, followerId: session.data.user.id })}
                   className="text-white py-2 px-4 uppercase rounded bg-red-400 hover:bg-red-500 shadow hover:shadow-lg font-medium transition transform hover:-translate-y-0.5"
                 >
                   Unfollow
                 </button> :
                 <button
-                  onClick={() => follow({ followingId: user?.id as string, followerId: session.data.user.id })}
+                  onClick={() => follow({ followingId: profileId as string, followerId: session.data.user.id })}
                   className="text-white py-2 px-4 uppercase rounded bg-blue-400 hover:bg-blue-500 shadow hover:shadow-lg font-medium transition transform hover:-translate-y-0.5"
                 >
                   Follow
                 </button>}
-              <Link
-                href={`/messages/${user?.id}`}
+              <button
+                onClick={() => { setHideChat(!hideChat); }}
                 className="text-white py-2 px-4 uppercase rounded bg-gray-700 hover:bg-gray-800 shadow hover:shadow-lg font-medium transition transform hover:-translate-y-0.5"
               >
                 Message
-              </Link>
+              </button>
             </div>}
         </div>
 
@@ -181,7 +223,7 @@ const Profile: NextPage = () => {
             <input
               className="text-gray-600 font-light italic text-right outline-none"
               type="text"
-              placeholder="your city"
+              placeholder={session.data?.user.id === profileId ? "your city" : ""}
               value={city ? city : ""}
               onChange={(e) => setCity(e.target.value)}
               disabled={user?.id !== session.data?.user.id}
@@ -189,7 +231,7 @@ const Profile: NextPage = () => {
             , <input
               className="text-gray-600 font-light italic outline-none"
               type="text"
-              placeholder="your country"
+              placeholder={session.data?.user.id === profileId ? "your country" : ""}
               value={country ? country : ""}
               onChange={(e) => setCountry(e.target.value)}
               disabled={user?.id !== session.data?.user.id}
@@ -198,7 +240,7 @@ const Profile: NextPage = () => {
 
           {saveCityOrCountryBtn}
 
-          <p className="mt-8 text-gray-500">
+          {!(session.data?.user.id !== profileId && description === null) && <p className="mt-8 text-gray-500">
             <input className="text-gray-600 disabled:bg-transparent font-light italic text-center outline-none"
               type="text"
               placeholder="your description"
@@ -206,16 +248,24 @@ const Profile: NextPage = () => {
               onChange={(e) => setDescription(e.target.value)}
               disabled={user?.id !== session.data?.user.id}
             />
-          </p>
+          </p>}
           {saveDescriptionBtn}
         </div>
 
         <div className="mt-12 flex flex-col justify-center">
         </div>
-
+        {session.data?.user !== undefined && user !== undefined &&
+          <ChatBox
+            hidden={hideChat}
+            setHide={setHideChat}
+            sender={session.data.user as User}
+            receiver={user as User}
+            messages={messages}
+            setMessages={setMessages}
+          />}
       </div>
     </div>
   )
 }
 
-export default Profile;
+export default ProfileWrapper;
